@@ -1,0 +1,43 @@
+<%= render "spree/shared/error_messages", target: @review %>
+<%= f.field_container :name do %>
+  <%= f.label :name %><br />
+  <%= f.text_field :name, maxlength: "255", size: "60" %>
+<% end %>
+
+<%= f.field_container :email do %>
+  <%= f.label :email %><br />
+  <%= mail_to @review.email %>
+<% end %>
+
+<%= f.field_container :title do %>
+  <%= f.label :title %><br />
+  <%= f.text_field :title, maxlength: "255", size: "60" %>
+<% end %>
+
+<%= f.field_container :review do %>
+  <%= f.label :review %><br />
+  <%= f.text_area :review, wrap: "virtual", rows: "10", cols: "60" %>
+<% end %>
+
+<%= f.field_container :images do %>
+  <%= f.label :images %>
+  <table>
+    <% @review.images.each do |image| %>
+      <tr>
+        <td>
+          <%= image_tag image.url(:original) %>
+        </td>
+        <td>
+          <%= link_to_delete image, url: admin_review_image_url(@review, image, product_id: @review.product), no_text: true  %>
+        </td>
+      </tr>
+    <% end %>
+  </table>
+<% end %>
+
+<% if Spree::Reviews::Config[:track_locale] %>
+<%= f.field_container :locale do %>
+  <%= f.label :locale %><br />
+  <%= f.select :locale, I18n.available_locales.map { |lc| [t(lc, default: lc.to_s), lc.to_s] } %>
+<% end %>
+<% end %>

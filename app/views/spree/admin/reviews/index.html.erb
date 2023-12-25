@@ -1,0 +1,127 @@
+<% admin_breadcrumb(link_to plural_resource_name(Spree::Product), spree.admin_products_path) %>
+
+<% content_for :page_title do %>
+  <%= I18n.t("spree.reviews") %>
+<% end %>
+
+<% content_for :table_filter_title do %>
+  <% if can? :display, Spree::Review %>
+    <%= I18n.t("spree.search") %>
+  <% end %>
+<% end %>
+
+<% content_for :table_filter do %>
+  <div data-hook="admin_reviews_index_search">
+    <%= search_form_for [:admin, @search] do |f| %>
+      <div class="alpha three columns">
+        <div class="field">
+          <%= f.label :name_cont, I18n.t("spree.user") %><br />
+          <%= f.text_field :name_cont, class: 'fullwidth' %>
+        </div>
+      </div>
+
+      <div class="seven columns">
+        <div class="field">
+          <%= f.label :title_cont, I18n.t("spree.title") -%><br/>
+          <%= f.text_field :title_cont, class: 'fullwidth'  -%>
+        </div>
+      </div>
+
+      <div class="four columns">
+        <div class="field">
+          <%= f.label :review_cont, I18n.t("spree.review") -%><br/>
+          <%= f.text_field :review_cont, class: 'fullwidth'  -%>
+        </div>
+      </div>
+
+      <div class="two columns omega">
+        <div class="field">
+          <%= f.label :approved_eq, I18n.t("spree.approval_status")-%><br/>
+          <%= f.select :approved_eq, [
+              [I18n.t("spree.all"), nil],
+              [I18n.t("spree.approved_reviews"), true],
+              [I18n.t("spree.unapproved_reviews"), false]
+            ], {}, class: 'select2 fullwidth'  -%>
+        </div>
+      </div>
+
+      <div class="clear"></div>
+
+      <div class="form-buttons actions filter-actions" data-hook="admin_reviews_index_search_buttons">
+        <%= button_tag I18n.t("spree.search") %>
+      </div>
+    <%- end -%>
+  </div>
+<%- end -%>
+
+<%= paginate @reviews, theme: "solidus_admin" %>
+
+<% if @reviews.any? %>
+  <table class="index">
+    <colgroup>
+      <col style="width: 20%;">
+      <col style="width: 10%;">
+      <col style="width: 10%;">
+      <col style="width: 15%;">
+      <col style="width: 15%;">
+      <col style="width: 15%;">
+      <col style="width: 17%;">
+    </colgroup>
+    <thead>
+      <tr>
+        <th><%= I18n.t("spree.product") %></th>
+        <th><%= "#{Spree::Review.human_attribute_name(:rating)}/#{I18n.t("spree.feedback")}" %></th>
+        <th><%= I18n.t("spree.verified_purchaser") %></th>
+        <th><%= Spree::Review.human_attribute_name(:user) %></th>
+        <th><%= Spree::Review.human_attribute_name(:created_at) %></th>
+        <th><%= Spree::Review.human_attribute_name(:images) %></th>
+        <th class="actions"></th>
+      </tr>
+    </thead>
+    <tbody>
+      <%- @reviews.each do |review| -%>
+        <tr id="<%= dom_id review %>">
+          <td>
+            <% if review.product %>
+              <%= link_to review.product.name, product_path(review.product) %>
+            <% end %>
+            </td>
+          <td class="align-center">
+            <%= txt_stars(review.rating) %><br />
+            <%= link_to "(#{review.feedback_stars}/#{review.feedback_reviews.size})", admin_review_feedback_reviews_path(review) %>
+          </td>
+          <td class="align-center">
+            <% if review.verified_purchaser? %>
+              <%= solidus_icon('fa fa-check') %>
+            <% end %>
+          </td>
+          <td class="align-center">
+            <p><%= review.user_id ? link_to(review.user.try(:email), [:admin, review.user]) : I18n.t("spree.anonymous") %></p>
+            <p><%= Spree::Review.human_attribute_name(:ip_address) %>: <%= review.ip_address ? link_to(review.ip_address, "http://whois.domaintools.com/#{review.ip_address}") : '-' %></p>
+          </td>
+          <td class="align-center">
+            <%= l review.created_at, format: :short %>
+          </td>
+          <td class="align-center">
+            <% review.images.each do |image| %>
+              <%= link_to image_tag(image.url(:product)), image.url(:original) %>
+            <% end %>
+          </td>
+          <td class="actions">
+            <% if can? :manage, Spree::Review %>
+              <%= link_to_with_icon 'ok', I18n.t("spree.approve"), approve_admin_review_url(review), no_text: true, class: 'approve' unless review.approved %>
+              <%= link_to_edit review, no_text: true, class: 'edit' %>
+              <%= link_to_delete review, no_text: true %>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+<% else %>
+  <div class="no-objects-found">
+    <%= I18n.t("spree.no_results") %>
+  </div>
+<% end %>
+
+<%= paginate @reviews, theme: "solidus_admin" -%>
